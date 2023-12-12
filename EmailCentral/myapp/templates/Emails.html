@@ -1,0 +1,31 @@
+<!-- templates/Emails.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emails</title>
+</head>
+<body>
+    <h1>Emails</h1>
+
+    {% if emails %}
+        <ul>
+            {% for email in emails %}
+                <li>
+                    <p><strong>Subject:</strong> {{ email.subject }}</p>
+                    <p><strong>Sender:</strong> {{ email.sender }}</p>
+                    <p><strong>Source:</strong> {{ email.source }}</p>
+                    <a href="{% url 'email_detail' pk=email.pk %}">View Email</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No emails available.</p>
+    {% endif %}
+
+    <a href="{% url 'home' %}">Back to Home</a>
+</body>
+</html>

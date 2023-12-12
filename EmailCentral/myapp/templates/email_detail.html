@@ -1,0 +1,31 @@
+<!-- templates/email_detail.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags and styles go here -->
+    <!-- ... -->
+</head>
+<body>
+    <h1>Email Detail</h1>
+    
+    <p><strong>Subject:</strong> {{ email.subject }}</p>
+    <p><strong>Sender:</strong> {{ email.sender }}</p>
+    <p><strong>Source:</strong> {{ email.source }}</p>
+    
+    <div>
+        <strong>Content:</strong>
+        <p>{{ email.content }}</p>
+    </div>
+
+    {% if email.attachments %}
+        <div>
+            <strong>Attachments:</strong>
+            <p>Attachment Filename: {{ email.attachments.name }}</p>
+            <a href="{% url 'download_attachment' filename=email.attachments.name %}" target="_blank">Download Attachment</a>
+        </div>
+    {% endif %}
+
+    <a href="{% url 'emails' %}">Back to Emails</a>
+</body>
+</html>
