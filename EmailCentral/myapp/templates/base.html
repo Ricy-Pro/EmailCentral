@@ -1,0 +1,21 @@
+<!-- FILEPATH: /C:/Users/ricir/OneDrive/Documents/GitHub/EmailCentral/EmailCentral/myapp/templates/base.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title> {%block title%} My App{%endblock%}</title>
+</head>
+<body>
+    <header>
+        <h1>Welcome to My App</h1>
+    </header>
+    
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+    
+    <footer>
+        <p>&copy; 2022 My App. All rights reserved.</p>
+    </footer>
+</body>
+</html>
