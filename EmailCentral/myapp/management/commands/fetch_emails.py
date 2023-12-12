@@ -23,8 +23,9 @@ class Command(BaseCommand):
             # Select the Inbox to fetch messages
             my_mail.select('Inbox')
 
-            key = 'FROM'
-            value = 'welcome@overleaf.com'
+            # Set the key and dynamically set the value to today's date
+            key = 'SINCE'
+            value = timezone.now().strftime("%d-%b-%Y")
             _, data = my_mail.search(None, key, value)
 
             mail_id_list = data[0].split()
@@ -48,11 +49,28 @@ class Command(BaseCommand):
                         for part in my_msg.walk():
                             if part.get_content_type() == 'text/plain':
                                 content = part.get_payload()
-
+                 
                         # Check if the email already exists
                         if not Email.objects.filter(sender=sender, subject=subject, content=content).exists():
                             # Email does not exist, create a new entry
-                            email_obj = Email(sender=sender, subject=subject, content=content, source='Gmail', received_at=timezone.now())
+                            # Extract the date header from the email
+                            date_header = my_msg['Date']
+
+                            try:
+                                # Try parsing with (UTC) suffix
+                                received_at = timezone.datetime.strptime(date_header, '%a, %d %b %Y %H:%M:%S %z (UTC)')
+                            except ValueError:
+                                try:
+                                    # Try parsing without (UTC) suffix
+                                    received_at = timezone.datetime.strptime(date_header, '%a, %d %b %Y %H:%M:%S %z')
+                                except ValueError as e:
+                                    # Handle parsing errors
+                                    self.stdout.write(self.style.ERROR(f'Error parsing date: {e}'))
+                                    continue  # Skip this email if date parsing fails
+
+        
+
+                            email_obj = Email(sender=sender, subject=subject, content=content, source='Gmail', received_at=received_at)
                             email_obj.save()
 
         except Exception as e:
