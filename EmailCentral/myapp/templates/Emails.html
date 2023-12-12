@@ -17,6 +17,7 @@
                 <li>
                     <p><strong>Subject:</strong> {{ email.subject }}</p>
                     <p><strong>Sender:</strong> {{ email.sender }}</p>
+                    <p><strong>Received At:</strong> {{ email.received_at|date:"F d, Y H:i:s" }}</p>
                     <p><strong>Source:</strong> {{ email.source }}</p>
                     <a href="{% url 'email_detail' pk=email.pk %}">View Email</a>
                 </li>
