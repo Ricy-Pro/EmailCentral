@@ -9,8 +9,10 @@ def home(request):
 # views.py in your app
 from django.shortcuts import render
 from .models import Email
+from django.core.management import call_command
 
 def Emails(request):
+    call_command('fetch_emails')
     items = Email.objects.all()
     return render(request, 'Emails.html', {'emails': items})
 
