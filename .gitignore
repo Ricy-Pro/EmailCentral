@@ -1,4 +1,6 @@
 credentials.yml
+db.sqlite3
+```
 .vscode/
 __pycache__/
 useful_commands.txt
