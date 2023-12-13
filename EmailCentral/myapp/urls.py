@@ -6,6 +6,5 @@ urlpatterns = [
     path('', home, name='home'),
     path('emails/', Emails, name='emails'),
     path('emails/<int:pk>/', email_detail, name='email_detail'),
-    path('attachments/<path:filename>/', download_attachment, name='download_attachment'),
-
+    path('attachments/<int:pk>/', download_attachment, name='download_attachment'),
 ]
