@@ -23,7 +23,8 @@
             <strong>Attachments:</strong>
             {% for attachment in email.attachments.all %}
                 <p>Attachment Filename: {{ attachment.name }}</p>
-                <a href="{% url 'download_attachment' filename=attachment.name %}" target="_blank">Download Attachment</a>
+                <a href="{% url 'download_attachment' pk=email.pk %}" target="_blank">Download Attachment</a>
+
 
 
             {% endfor %}
