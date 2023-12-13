@@ -18,11 +18,15 @@
         <p>{{ email.content }}</p>
     </div>
 
-    {% if email.attachments %}
+    {% if email.attachments.all %}
         <div>
             <strong>Attachments:</strong>
-            <p>Attachment Filename: {{ email.attachments.name }}</p>
-            <a href="{% url 'download_attachment' filename=email.attachments.name %}" target="_blank">Download Attachment</a>
+            {% for attachment in email.attachments.all %}
+                <p>Attachment Filename: {{ attachment.name }}</p>
+                <a href="{% url 'download_attachment' filename=attachment.name %}" target="_blank">Download Attachment</a>
+
+
+            {% endfor %}
         </div>
     {% endif %}
 

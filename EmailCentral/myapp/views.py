@@ -1,6 +1,6 @@
-from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
-from .models import Email
+from django.shortcuts import get_object_or_404
+from .models import Email, Attachment
 
 # Create your views here.
 def home(request):
@@ -20,19 +20,24 @@ def Emails(request):
 def email_detail(request, pk):
     email = get_object_or_404(Email, pk=pk)
     return render(request, 'email_detail.html', {'email': email})
-def download_attachment(request, filename):
-  
-    email = get_object_or_404(Email, attachments__icontains=filename)
+def download_attachment(request, pk):
+    email = get_object_or_404(Email, pk=pk)
     
-    # Assuming you have a 'attachments' field in your Email model
-    attachment_path = email.attachments.path
+    # Assuming you have a 'attachments' ManyToManyField in your Email model
+    attachments = email.attachments.all()
+    
+    if not attachments:
+        # Handle the case when there are no attachments
+        return HttpResponse("No attachments found.")
+
+    # For simplicity, assuming you're downloading the first attachment
+    attachment = attachments[0]
     
     # You may want to set appropriate response headers for downloading the file
     response = HttpResponse(content_type='application/octet-stream')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response['Content-Disposition'] = f'attachment; filename="{attachment.name}"'
 
-    # Read the attachment file and write it to the response
-    with open(attachment_path, 'rb') as attachment_file:
-        response.write(attachment_file.read())
+    # Write the attachment content to the response
+    response.write(attachment.content)
 
     return response

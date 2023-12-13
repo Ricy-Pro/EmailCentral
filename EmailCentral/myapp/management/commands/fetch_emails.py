@@ -1,15 +1,22 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from myapp.models import Email
+from myapp.models import Email, Attachment
+
+
 import imaplib
 import email
 import yaml
+import pytz
 
 class Command(BaseCommand):
     help = 'Fetch emails from Gmail and update the database'
 
     def handle(self, *args, **options):
         try:
+            # Clear the existing emails and attachments in the database
+            Email.objects.all().delete()
+            Attachment.objects.all().delete()
+
             with open(r"C:\Users\ricir\OneDrive\Documents\GitHub\EmailCentral\EmailCentral\myapp\management\commands\credentials.yml") as f:
                 content = f.read()
 
@@ -45,33 +52,54 @@ class Command(BaseCommand):
                         subject = my_msg['subject']
                         content = ""
 
+                        # Variables to store attachments
+                        attachments = []
+
                         # Extract content if available
                         for part in my_msg.walk():
                             if part.get_content_type() == 'text/plain':
                                 content = part.get_payload()
-                 
+                            elif part.get('Content-Disposition') and 'attachment' in part.get('Content-Disposition'):
+                                # This part is an attachment
+                                filename = part.get_filename()
+                                attachment_content = part.get_payload(decode=True)
+
+                                # Save the attachment to the Attachment model
+                                attachment = Attachment(name=filename, content=attachment_content)
+                                attachment.save()
+                                attachments.append(attachment)
+
                         # Check if the email already exists
                         if not Email.objects.filter(sender=sender, subject=subject, content=content).exists():
                             # Email does not exist, create a new entry
-                            # Extract the date header from the email
                             date_header = my_msg['Date']
 
                             try:
                                 # Try parsing with (UTC) suffix
-                                received_at = timezone.datetime.strptime(date_header, '%a, %d %b %Y %H:%M:%S %z (UTC)')
+                                received_at_utc = timezone.datetime.strptime(date_header, '%a, %d %b %Y %H:%M:%S %z (UTC)')
                             except ValueError:
                                 try:
                                     # Try parsing without (UTC) suffix
-                                    received_at = timezone.datetime.strptime(date_header, '%a, %d %b %Y %H:%M:%S %z')
+                                    received_at_utc = timezone.datetime.strptime(date_header, '%a, %d %b %Y %H:%M:%S %z')
                                 except ValueError as e:
                                     # Handle parsing errors
                                     self.stdout.write(self.style.ERROR(f'Error parsing date: {e}'))
                                     continue  # Skip this email if date parsing fails
 
-        
+                            # Check if the timezone is present in the date header
+                            if received_at_utc.tzinfo is None:
+                                # If not, assume GMT
+                                received_at_utc = received_at_utc.replace(tzinfo=pytz.timezone('GMT'))
 
-                            email_obj = Email(sender=sender, subject=subject, content=content, source='Gmail', received_at=received_at)
+                            # Convert to Romanian timezone
+                            romanian_timezone = pytz.timezone('Europe/Bucharest')
+                            received_at_romanian = received_at_utc.astimezone(romanian_timezone)
+
+                            email_obj = Email(sender=sender, subject=subject, content=content, source='Gmail', received_at=received_at_romanian)
                             email_obj.save()
+
+                            # Associate attachments with the email
+                            email_obj.attachments.set(attachments)
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Error: {e}'))
